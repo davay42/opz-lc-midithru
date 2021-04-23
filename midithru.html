@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>MIDI THRU</title>
+    <script>
+
+    let opz={};
+    let lc={};
+
+    let opzMIDIMessage = (event) => {
+      if (event.data == 248) {return}
+      if(event.data[1]!=1) {
+        lc.out.send(event.data, event.timestamp)
+      }
+    }
+
+    let lcMIDIMessage = (event) => {
+      opz.out.send(event.data, event.timestamp)
+    };
+
+    let onMIDISuccess = (midiAccess) => {
+      console.log( "MIDI ready!", midiAccess );
+      midiAccess.inputs.forEach(input => {
+        if (input.name == 'OP-Z') {
+          opz.in=input;
+          opz.in.onmidimessage = opzMIDIMessage
+        }
+        if (input.name == 'Launch Control XL') {
+          lc.in = input;
+          lc.in.onmidimessage = lcMIDIMessage
+        }
+      })
+      midiAccess.outputs.forEach(output => {
+        console.log(output.name)
+        if (output.name == 'OP-Z') {
+          opz.out=output
+        } else if (output.name == 'Launch Control XL') {
+          lc.out = output
+        }
+      })
+    };
+
+    let onMIDIFailure = (msg) => {
+      console.log( "Failed to get MIDI access - " + msg );
+    }
+
+    navigator.requestMIDIAccess().then( onMIDISuccess, onMIDIFailure );
+
+
+    </script>
+  </head>
+  <body>
+  Launch Control to OP-Z MIDI THRU
+  </body>
+</html>
